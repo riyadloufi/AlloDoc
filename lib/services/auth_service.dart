@@ -27,9 +27,17 @@ class AuthService {
         'createdAt': DateTime.now(),
       });
       return role;
-    } catch (e) {
-      print('Erreur inscription: $e');
-      throw e;
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case 'email-already-in-use':
+          throw 'Cet email est déjà utilisé.';
+        case 'weak-password':
+          throw 'Mot de passe trop faible (6 caractères min).';
+        case 'invalid-email':
+          throw 'Email invalide.';
+        default:
+          throw 'Erreur: ${e.message}';
+      }
     }
   }
 

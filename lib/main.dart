@@ -1,5 +1,5 @@
 import 'package:allo_doc/firebase_options.dart';
-import 'package:allo_doc/screens/register_screen.dart';
+import 'package:allo_doc/screens/login_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'AlloDoc',
       debugShowCheckedModeBanner: false,
-      home: const RegisterScreen(),
+      home: const LoginScreen(),
     );
   }
 }
