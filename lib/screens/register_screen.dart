@@ -1,5 +1,5 @@
-import 'package:allo_doc/screens/home_doctor.dart'; // Ajouté
-import 'package:allo_doc/screens/home_patient.dart';
+import 'package:allo_doc/screens/doctor/home_doctor.dart';
+import 'package:allo_doc/screens/patient/home_patient.dart';
 import 'package:allo_doc/services/auth_service.dart';
 import 'package:flutter/material.dart';
 
@@ -15,16 +15,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
-  // Supprimé _roleController car inutile
 
-  String _role = 'patient'; // Valeur par défaut pour éviter "aucun rôle"
+  String _role = 'patient';
   final AuthService _authService = AuthService();
   bool _isLoading = false;
   String _errorMsg = '';
-  final List<String> options = ["patient", "doctor"]; // Ordre logique
+  final List<String> options = ["patient", "doctor"];
 
   Future<void> _register() async {
-    // Validation simple
     if (_firstNameController.text.trim().isEmpty ||
         _lastNameController.text.trim().isEmpty ||
         _emailController.text.trim().isEmpty ||
@@ -58,7 +56,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _errorMsg = 'Erreur lors de l\'inscription. Vérifiez vos informations.';
       });
     } else {
-      // Redirection selon le rôle
       if (role == 'patient') {
         Navigator.pushReplacement(
           context,
@@ -81,7 +78,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: SingleChildScrollView(
-          // Évite les débordements sur petit écran
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -134,7 +130,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              // Choix du rôle avec Wrap pour un meilleur affichage
               Wrap(
                 spacing: 12,
                 runSpacing: 8,

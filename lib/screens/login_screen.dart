@@ -1,5 +1,5 @@
-import 'package:allo_doc/screens/home_doctor.dart';
-import 'package:allo_doc/screens/home_patient.dart';
+import 'package:allo_doc/screens/doctor/home_doctor.dart';
+import 'package:allo_doc/screens/patient/home_patient.dart';
 import 'package:allo_doc/services/auth_service.dart';
 import 'package:flutter/material.dart';
 
