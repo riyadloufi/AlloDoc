@@ -25,7 +25,7 @@ class AppointmentModel {
 
   factory AppointmentModel.fromMap(String id, Map<String, dynamic> map) {
     return AppointmentModel(
-      id: map['id'] ?? '',
+      id: id,
       patientId: map['patientId'] ?? '',
       doctorId: map['doctorId'] ?? '',
       doctorName: map['doctorName'] ?? '',

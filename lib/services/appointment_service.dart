@@ -5,12 +5,12 @@ import '../models/appointment_model.dart';
 class AppointmentService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // Créer un RDV
+  // ✅ Créer un RDV
   Future<void> createAppointment(AppointmentModel appointment) async {
     await _db.collection('appointments').add(appointment.toMap());
   }
 
-  // écupérer les RDV d'un patient
+  // ✅ Récupérer les RDV d'un patient
   Stream<List<AppointmentModel>> getPatientAppointments(String patientId) {
     return _db
         .collection('appointments')
@@ -24,7 +24,7 @@ class AppointmentService {
         );
   }
 
-  // Récupérer les RDV d'un médecin
+  // ✅ Récupérer les RDV d'un médecin
   Stream<List<AppointmentModel>> getDoctorAppointments(String doctorId) {
     return _db
         .collection('appointments')
@@ -38,14 +38,14 @@ class AppointmentService {
         );
   }
 
-  // Annuler un RDV
+  // ✅ Annuler un RDV
   Future<void> cancelAppointment(String appointmentId) async {
     await _db.collection('appointments').doc(appointmentId).update({
       'status': 'cancelled',
     });
   }
 
-  // Récupérer les créneaux déjà pris pour un médecin/date
+  // ✅ Récupérer les créneaux déjà pris pour un médecin/date
   Future<List<String>> getBookedSlots(String doctorId, DateTime date) async {
     final start = DateTime(date.year, date.month, date.day);
     final end = start.add(const Duration(days: 1));

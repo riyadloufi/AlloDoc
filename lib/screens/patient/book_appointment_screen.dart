@@ -16,7 +16,6 @@ class BookAppointmentScreen extends StatefulWidget {
 
 class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   final AppointmentService _service = AppointmentService();
-
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
   String _selectedSlot = '';
   String _selectedReason = 'consultation';
@@ -37,7 +36,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     '16:00',
     '16:30',
   ];
-
   final List<String> _reasons = ['consultation', 'urgence', 'suivi'];
 
   @override
@@ -56,16 +54,13 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
   Future<void> _confirmAppointment() async {
     if (_selectedSlot.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez choisir un créneau.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Choisissez un créneau')));
       return;
     }
-
     setState(() => _isLoading = true);
-
     final currentUser = FirebaseAuth.instance.currentUser!;
-
     final appointment = AppointmentModel(
       id: '',
       patientId: currentUser.uid,
@@ -77,18 +72,14 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       reason: _selectedReason,
       status: 'confirmed',
     );
-
     await _service.createAppointment(appointment);
-
     setState(() => _isLoading = false);
-
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Rendez-vous confirmé !'),
+        content: Text('✅ Rendez-vous confirmé'),
         backgroundColor: Colors.green,
       ),
     );
-
     Navigator.pop(context);
   }
 
@@ -101,7 +92,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Médecin sélectionné
             Card(
               child: ListTile(
                 leading: const CircleAvatar(
@@ -115,34 +105,28 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
               ),
             ),
             const SizedBox(height: 20),
-
-            // Motif
             const Text(
-              'Motif de consultation',
+              'Motif',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
-              children: _reasons.map((reason) {
-                return ChoiceChip(
-                  label: Text(reason),
-                  selected: _selectedReason == reason,
-                  selectedColor: const Color(0xFF1A73E8),
-                  labelStyle: TextStyle(
-                    color: _selectedReason == reason
-                        ? Colors.white
-                        : Colors.black,
-                  ),
-                  onSelected: (_) => setState(() => _selectedReason = reason),
-                );
-              }).toList(),
+              children: _reasons
+                  .map(
+                    (reason) => ChoiceChip(
+                      label: Text(reason),
+                      selected: _selectedReason == reason,
+                      selectedColor: const Color(0xFF1A73E8),
+                      onSelected: (_) =>
+                          setState(() => _selectedReason = reason),
+                    ),
+                  )
+                  .toList(),
             ),
             const SizedBox(height: 20),
-
-            // Date
             const Text(
-              'Choisir une date',
+              'Date',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 8),
@@ -168,10 +152,8 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
               ),
             ),
             const SizedBox(height: 20),
-
-            // Créneaux
             const Text(
-              'Choisir un créneau',
+              'Créneau',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 8),
@@ -193,9 +175,9 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                     decoration: BoxDecoration(
                       color: isBooked
                           ? Colors.grey[300]
-                          : isSelected
-                          ? const Color(0xFF1A73E8)
-                          : Colors.white,
+                          : (isSelected
+                                ? const Color(0xFF1A73E8)
+                                : Colors.white),
                       border: Border.all(
                         color: isBooked ? Colors.grey : const Color(0xFF1A73E8),
                       ),
@@ -206,9 +188,9 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                       style: TextStyle(
                         color: isBooked
                             ? Colors.grey
-                            : isSelected
-                            ? Colors.white
-                            : const Color(0xFF1A73E8),
+                            : (isSelected
+                                  ? Colors.white
+                                  : const Color(0xFF1A73E8)),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -217,8 +199,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
               }).toList(),
             ),
             const SizedBox(height: 30),
-
-            // Bouton confirmer
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -226,15 +206,12 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1A73E8),
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
                 ),
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
                     : const Text(
-                        '✅ Confirmer le rendez-vous',
-                        style: TextStyle(fontSize: 16, color: Colors.white),
+                        '✅ Confirmer',
+                        style: TextStyle(color: Colors.white),
                       ),
               ),
             ),

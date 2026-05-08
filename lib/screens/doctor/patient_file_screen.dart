@@ -1,4 +1,3 @@
-// lib/screens/doctor/patient_file_screen.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -16,20 +15,16 @@ class PatientFileScreen extends StatefulWidget {
 
 class _PatientFileScreenState extends State<PatientFileScreen> {
   late Future<UserModel> _patientFuture;
-  final AppointmentService _appointmentService = AppointmentService();
+  final AppointmentService _service = AppointmentService();
 
   @override
   void initState() {
     super.initState();
-    _patientFuture = _getPatient();
-  }
-
-  Future<UserModel> _getPatient() async {
-    final doc = await FirebaseFirestore.instance
+    _patientFuture = FirebaseFirestore.instance
         .collection('users')
         .doc(widget.patientId)
-        .get();
-    return UserModel.fromMap(doc.data()!);
+        .get()
+        .then((doc) => UserModel.fromMap(doc.data()!));
   }
 
   @override
@@ -39,16 +34,13 @@ class _PatientFileScreenState extends State<PatientFileScreen> {
       body: FutureBuilder<UserModel>(
         future: _patientFuture,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (snapshot.connectionState == ConnectionState.waiting)
             return const Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData) {
+          if (!snapshot.hasData)
             return const Center(child: Text('Patient introuvable'));
-          }
           final patient = snapshot.data!;
           return Column(
             children: [
-              // En-tête patient
               Container(
                 padding: const EdgeInsets.all(20),
                 color: const Color(0xFF1A73E8),
@@ -92,42 +84,32 @@ class _PatientFileScreenState extends State<PatientFileScreen> {
               ),
               Expanded(
                 child: StreamBuilder<List<AppointmentModel>>(
-                  stream: _appointmentService.getPatientAppointments(
-                    widget.patientId,
-                  ),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
+                  stream: _service.getPatientAppointments(widget.patientId),
+                  builder: (context, snap) {
+                    if (snap.connectionState == ConnectionState.waiting)
                       return const Center(child: CircularProgressIndicator());
-                    }
-                    final appointments = snapshot.data ?? [];
-                    if (appointments.isEmpty) {
+                    final apps = snap.data ?? [];
+                    if (apps.isEmpty)
                       return const Center(
-                        child: Text('Aucun rendez-vous passé avec ce patient'),
+                        child: Text('Aucun rendez-vous passé'),
                       );
-                    }
                     return ListView.builder(
                       padding: const EdgeInsets.all(16),
-                      itemCount: appointments.length,
-                      itemBuilder: (context, index) {
-                        final app = appointments[index];
-                        return Card(
-                          child: ListTile(
-                            leading: Icon(
-                              Icons.event_available,
-                              color: app.status == 'confirmed'
-                                  ? Colors.green
-                                  : Colors.red,
-                            ),
-                            title: Text(
-                              '${app.date.day}/${app.date.month}/${app.date.year} à ${app.timeSlot}',
-                            ),
-                            subtitle: Text(
-                              'Motif : ${app.reason} • Statut : ${app.status}',
-                            ),
-                            trailing: const Icon(Icons.chevron_right),
+                      itemCount: apps.length,
+                      itemBuilder: (_, i) => Card(
+                        child: ListTile(
+                          leading: Icon(
+                            Icons.event_available,
+                            color: apps[i].status == 'confirmed'
+                                ? Colors.green
+                                : Colors.red,
                           ),
-                        );
-                      },
+                          title: Text(
+                            '${apps[i].date.day}/${apps[i].date.month}/${apps[i].date.year} à ${apps[i].timeSlot}',
+                          ),
+                          subtitle: Text('Motif : ${apps[i].reason}'),
+                        ),
+                      ),
                     );
                   },
                 ),

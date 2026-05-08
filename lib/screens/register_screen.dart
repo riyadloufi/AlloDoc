@@ -15,58 +15,45 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
-
-  String _role = 'patient';
   final AuthService _authService = AuthService();
   bool _isLoading = false;
   String _errorMsg = '';
-  final List<String> options = ["patient", "doctor"];
+  String _selectedRole = 'patient';
 
   Future<void> _register() async {
-    if (_firstNameController.text.trim().isEmpty ||
-        _lastNameController.text.trim().isEmpty ||
-        _emailController.text.trim().isEmpty ||
-        _passwordController.text.trim().isEmpty ||
-        _role.isEmpty) {
-      setState(() {
-        _errorMsg = 'Veuillez remplir tous les champs et choisir un rôle.';
-      });
-      return;
-    }
-
     setState(() {
       _isLoading = true;
       _errorMsg = '';
     });
-
-    String? role = await _authService.register(
-      email: _emailController.text.trim(),
-      password: _passwordController.text.trim(),
-      firstName: _firstNameController.text.trim(),
-      lastName: _lastNameController.text.trim(),
-      role: _role,
-    );
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    if (role == null) {
-      setState(() {
-        _errorMsg = 'Erreur lors de l\'inscription. Vérifiez vos informations.';
-      });
-    } else {
-      if (role == 'patient') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomePatient()),
-        );
-      } else if (role == 'doctor') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeDoctor()),
-        );
+    try {
+      String? role = await _authService.register(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+        firstName: _firstNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        role: _selectedRole,
+      );
+      if (role == null) {
+        setState(() => _errorMsg = 'Erreur lors de l\'inscription');
+      } else {
+        // Redirection selon le rôle
+        if (role == 'patient') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const HomePatient()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const HomeDoctor()),
+          );
+        }
       }
+    } catch (e) {
+      setState(() {
+        _errorMsg = e.toString();
+        _isLoading = false;
+      });
     }
   }
 
@@ -74,49 +61,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Inscription")),
-      backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: SingleChildScrollView(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text(
-                'AlloDoc',
-                style: TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1A73E8),
-                ),
+                'Créer un compte',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 30),
               TextField(
                 controller: _firstNameController,
-                keyboardType: TextInputType.name,
                 decoration: const InputDecoration(
                   labelText: 'Prénom',
                   border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.person),
                 ),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: _lastNameController,
-                keyboardType: TextInputType.name,
                 decoration: const InputDecoration(
                   labelText: 'Nom',
                   border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.people),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
                   labelText: 'Email',
                   border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.email),
                 ),
               ),
               const SizedBox(height: 16),
@@ -126,32 +102,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Mot de passe',
                   border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lock),
                 ),
               ),
-              const SizedBox(height: 20),
-              Wrap(
-                spacing: 12,
-                runSpacing: 8,
-                children: options.map((option) {
-                  return ChoiceChip(
-                    label: Text(option),
-                    selected: _role == option,
-                    onSelected: (bool selected) {
-                      if (selected) {
-                        setState(() {
-                          _role = option;
-                        });
-                      }
-                    },
-                  );
-                }).toList(),
+              const SizedBox(height: 16),
+              const Text('Vous êtes :'),
+              Row(
+                children: [
+                  Expanded(
+                    child: RadioListTile(
+                      title: const Text('Patient'),
+                      value: 'patient',
+                      groupValue: _selectedRole,
+                      onChanged: (val) => setState(() => _selectedRole = val!),
+                    ),
+                  ),
+                  Expanded(
+                    child: RadioListTile(
+                      title: const Text('Médecin'),
+                      value: 'doctor',
+                      groupValue: _selectedRole,
+                      onChanged: (val) => setState(() => _selectedRole = val!),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 20),
               if (_errorMsg.isNotEmpty)
                 Text(_errorMsg, style: const TextStyle(color: Colors.red)),
               const SizedBox(height: 20),
-
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -163,10 +141,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
                       : const Text(
-                          "S'inscrire",
-                          style: TextStyle(fontSize: 16, color: Colors.white),
+                          'S\'inscrire',
+                          style: TextStyle(color: Colors.white),
                         ),
                 ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Déjà un compte ? Se connecter"),
               ),
             ],
           ),

@@ -1,5 +1,6 @@
 import 'package:allo_doc/screens/doctor/home_doctor.dart';
 import 'package:allo_doc/screens/patient/home_patient.dart';
+import 'package:allo_doc/screens/register_screen.dart';
 import 'package:allo_doc/services/auth_service.dart';
 import 'package:flutter/material.dart';
 
@@ -26,14 +27,10 @@ class _LoginScreenState extends State<LoginScreen> {
       email: _emailController.text.trim(),
       password: _passwordController.text.trim(),
     );
-    setState(() {
-      _isLoading = false;
-    });
+    setState(() => _isLoading = false);
 
     if (role == null) {
-      setState(() {
-        _errorMsg = 'Email ou mot de passe incorrect';
-      });
+      setState(() => _errorMsg = 'Email ou mot de passe incorrect');
     } else {
       if (role == 'patient') {
         Navigator.pushReplacement(
@@ -52,7 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Login page")),
+      appBar: AppBar(title: const Text("Connexion")),
       backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -84,7 +81,6 @@ class _LoginScreenState extends State<LoginScreen> {
               decoration: const InputDecoration(
                 labelText: 'Mot de passe',
                 border: OutlineInputBorder(),
-
                 prefixIcon: Icon(Icons.lock),
               ),
             ),
@@ -92,7 +88,6 @@ class _LoginScreenState extends State<LoginScreen> {
             if (_errorMsg.isNotEmpty)
               Text(_errorMsg, style: const TextStyle(color: Colors.red)),
             const SizedBox(height: 20),
-
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -102,12 +97,22 @@ class _LoginScreenState extends State<LoginScreen> {
                   backgroundColor: const Color(0xFF1A73E8),
                 ),
                 child: _isLoading
-                    ? CircularProgressIndicator(color: Colors.white)
+                    ? const CircularProgressIndicator(color: Colors.white)
                     : const Text(
-                        'se connecter',
+                        'Se connecter',
                         style: TextStyle(fontSize: 16, color: Colors.white),
                       ),
               ),
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                );
+              },
+              child: const Text("Pas encore de compte ? S'inscrire"),
             ),
           ],
         ),

@@ -5,7 +5,8 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  Future<String> register({
+  // ✅ INSCRIPTION
+  Future<String?> register({
     required String email,
     required String password,
     required String firstName,
@@ -28,19 +29,15 @@ class AuthService {
       });
       return role;
     } on FirebaseAuthException catch (e) {
-      switch (e.code) {
-        case 'email-already-in-use':
-          throw 'Cet email est déjà utilisé.';
-        case 'weak-password':
-          throw 'Mot de passe trop faible (6 caractères min).';
-        case 'invalid-email':
-          throw 'Email invalide.';
-        default:
-          throw 'Erreur: ${e.message}';
-      }
+      print('Erreur inscription: $e');
+      rethrow; // propage l'erreur pour l'afficher dans l'UI
+    } catch (e) {
+      print('Erreur inconnue: $e');
+      rethrow;
     }
   }
 
+  // ✅ CONNEXION
   Future<String?> login({
     required String email,
     required String password,
@@ -50,7 +47,6 @@ class AuthService {
         email: email,
         password: password,
       );
-
       String uid = result.user!.uid;
       DocumentSnapshot doc = await _db.collection('users').doc(uid).get();
       String role = doc['role'];
@@ -61,6 +57,7 @@ class AuthService {
     }
   }
 
+  // ✅ DÉCONNEXION
   Future<void> logout() async {
     await _auth.signOut();
   }

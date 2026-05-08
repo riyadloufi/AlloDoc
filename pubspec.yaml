@@ -33,6 +33,7 @@ dependencies:
   firebase_core: ^4.7.0
   firebase_auth: ^6.4.0
   cloud_firestore: ^6.3.0
+  firebase_storage: ^13.2.0
   pdf: ^3.10.8
   printing: ^5.13.3
   signature: ^5.4.0
