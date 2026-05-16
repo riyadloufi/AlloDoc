@@ -7,6 +7,7 @@ import '../../services/appointment_service.dart';
 
 class PatientFileScreen extends StatefulWidget {
   final String patientId;
+
   const PatientFileScreen({super.key, required this.patientId});
 
   @override
@@ -85,14 +86,19 @@ class _PatientFileScreenState extends State<PatientFileScreen> {
               Expanded(
                 child: StreamBuilder<List<AppointmentModel>>(
                   stream: _service.getPatientAppointments(widget.patientId),
-                  builder: (context, snap) {
-                    if (snap.connectionState == ConnectionState.waiting)
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Center(child: Text('Erreur : ${snapshot.error}'));
+                    }
+                    if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
-                    final apps = snap.data ?? [];
-                    if (apps.isEmpty)
+                    }
+                    final apps = snapshot.data ?? [];
+                    if (apps.isEmpty) {
                       return const Center(
                         child: Text('Aucun rendez-vous passé'),
                       );
+                    }
                     return ListView.builder(
                       padding: const EdgeInsets.all(16),
                       itemCount: apps.length,
