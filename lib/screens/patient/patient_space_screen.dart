@@ -74,6 +74,7 @@ class _PatientSpaceScreenState extends State<PatientSpaceScreen> {
                     final app = filtered[i];
                     final isConfirmed = app.status == 'confirmed';
                     final isCancelled = app.status == 'cancelled';
+                    final isRefused = app.status == 'refused';
 
                     return Container(
                       margin: const EdgeInsets.only(bottom: 12),
@@ -111,7 +112,9 @@ class _PatientSpaceScreenState extends State<PatientSpaceScreen> {
                                   decoration: BoxDecoration(
                                     color: isConfirmed
                                         ? const Color(0xFFDCFCE7)
-                                        : (isCancelled ? const Color(0xFFFEE2E2) : const Color(0xFFFEF9C3)),
+                                        : (isCancelled || isRefused
+                                            ? const Color(0xFFFEE2E2)
+                                            : const Color(0xFFFEF9C3)),
                                     borderRadius: BorderRadius.circular(30),
                                   ),
                                   child: Row(
@@ -120,23 +123,25 @@ class _PatientSpaceScreenState extends State<PatientSpaceScreen> {
                                       Icon(
                                         isConfirmed
                                             ? Icons.check_circle
-                                            : (isCancelled ? Icons.cancel : Icons.info),
+                                            : (isCancelled || isRefused ? Icons.cancel : Icons.info),
                                         size: 14,
                                         color: isConfirmed
                                             ? Colors.green[700]
-                                            : (isCancelled ? Colors.red[700] : Colors.orange[700]),
+                                            : (isCancelled || isRefused ? Colors.red[700] : Colors.orange[700]),
                                       ),
                                       const SizedBox(width: 4),
                                       Text(
                                         app.status == 'confirmed'
                                             ? 'Confirmé'
-                                            : (app.status == 'cancelled' ? 'Annulé' : 'En attente'),
+                                            : (app.status == 'cancelled'
+                                                ? 'Annulé'
+                                                : (app.status == 'refused' ? 'Refusé' : 'En attente')),
                                         style: TextStyle(
                                           fontSize: 11,
                                           fontWeight: FontWeight.bold,
                                           color: isConfirmed
                                               ? Colors.green[800]
-                                              : (isCancelled ? Colors.red[800] : Colors.orange[800]),
+                                              : (isCancelled || isRefused ? Colors.red[800] : Colors.orange[800]),
                                         ),
                                       ),
                                     ],
@@ -208,6 +213,41 @@ class _PatientSpaceScreenState extends State<PatientSpaceScreen> {
                                     fontStyle: FontStyle.italic,
                                     color: Color(0xFF64748B),
                                   ),
+                                ),
+                              ),
+                            ],
+                            
+                            // Refusal / Cancellation Reason
+                            if ((isRefused || isCancelled) && app.cancelReason.isNotEmpty) ...[
+                              const SizedBox(height: 12),
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFF1F2),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: const Color(0xFFFECDD3)),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      isRefused ? 'Motif du refus :' : 'Motif de l\'annulation :',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFFE11D48),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      app.cancelReason,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Color(0xFF9F1239),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],

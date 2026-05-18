@@ -321,25 +321,23 @@ class _AgendaScreenState extends State<AgendaScreen> {
                     );
                   }),
                   const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: tempSelected == null
-                          ? null
-                          : () => Navigator.pop(context, tempSelected),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1A73E8),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
+                  ElevatedButton(
+                    onPressed: tempSelected == null
+                        ? null
+                        : () => Navigator.pop(context, tempSelected),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 44), // Sleek, modern height!
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Text(
-                        'Confirmer le motif',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      'Confirmer le motif',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                     ),
                   ),
                 ],
