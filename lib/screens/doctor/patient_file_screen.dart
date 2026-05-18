@@ -503,7 +503,7 @@ class _ConsultationCard extends StatelessWidget {
                     ElevatedButton(
                       onPressed: tempSelected == null ? null : () => Navigator.pop(context, tempSelected),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.colorScheme.primary,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
                         foregroundColor: Colors.white,
                         minimumSize: const Size(double.infinity, 44), // Sleek, modern height!
                         padding: const EdgeInsets.symmetric(vertical: 12),
