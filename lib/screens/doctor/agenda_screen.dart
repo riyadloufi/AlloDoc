@@ -254,6 +254,7 @@ class _AgendaScreenState extends State<AgendaScreen> {
     return await showModalBottomSheet<String>(
       context: context,
       backgroundColor: Colors.white,
+      isScrollControlled: true, // Allows sheet to expand past 50% screen height!
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -261,86 +262,93 @@ class _AgendaScreenState extends State<AgendaScreen> {
         String? tempSelected;
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 28),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          title,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E293B),
+            return SafeArea(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.only(
+                  left: 20,
+                  right: 20,
+                  top: 24,
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 28),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Veuillez sélectionner un motif obligatoire ci-dessous :',
-                    style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
-                  ),
-                  const SizedBox(height: 16),
-                  ...reasons.map((reason) {
-                    final isSelected = tempSelected == reason;
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFF1A73E8).withOpacity(0.06) : Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isSelected ? const Color(0xFF1A73E8) : const Color(0xFFE2E8F0),
-                          width: isSelected ? 1.5 : 1,
-                        ),
-                      ),
-                      child: ListTile(
-                        dense: true,
-                        title: Text(
-                          reason,
-                          style: TextStyle(
-                            color: isSelected ? const Color(0xFF1A73E8) : const Color(0xFF1E293B),
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                            fontSize: 14,
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Veuillez sélectionner un motif obligatoire ci-dessous :',
+                      style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
+                    ),
+                    const SizedBox(height: 16),
+                    ...reasons.map((reason) {
+                      final isSelected = tempSelected == reason;
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        decoration: BoxDecoration(
+                          color: isSelected ? const Color(0xFF1A73E8).withOpacity(0.06) : Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isSelected ? const Color(0xFF1A73E8) : const Color(0xFFE2E8F0),
+                            width: isSelected ? 1.5 : 1,
                           ),
                         ),
-                        trailing: isSelected
-                            ? const Icon(Icons.check_circle, color: Color(0xFF1A73E8))
-                            : null,
-                        onTap: () {
-                          setModalState(() => tempSelected = reason);
-                        },
+                        child: ListTile(
+                          dense: true,
+                          title: Text(
+                            reason,
+                            style: TextStyle(
+                              color: isSelected ? const Color(0xFF1A73E8) : const Color(0xFF1E293B),
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              fontSize: 14,
+                            ),
+                          ),
+                          trailing: isSelected
+                              ? const Icon(Icons.check_circle, color: Color(0xFF1A73E8))
+                              : null,
+                          onTap: () {
+                            setModalState(() => tempSelected = reason);
+                          },
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: tempSelected == null
+                          ? null
+                          : () => Navigator.pop(context, tempSelected),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 44), // Sleek, modern height!
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
                       ),
-                    );
-                  }),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: tempSelected == null
-                        ? null
-                        : () => Navigator.pop(context, tempSelected),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(double.infinity, 44), // Sleek, modern height!
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                      child: const Text(
+                        'Confirmer le motif',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                       ),
-                      elevation: 0,
                     ),
-                    child: const Text(
-                      'Confirmer le motif',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             );
           },
