@@ -110,21 +110,61 @@ class _PatientFileScreenState extends State<PatientFileScreen> {
                       itemCount: appointments.length,
                       itemBuilder: (context, index) {
                         final app = appointments[index];
+                        final hasIllness = app.chronicIllness.isNotEmpty && app.chronicIllness != 'Aucune';
+                        final hasNote = app.description.isNotEmpty;
                         return Card(
-                          child: ListTile(
-                            leading: Icon(
-                              Icons.event_available,
-                              color: app.status == 'confirmed'
-                                  ? Colors.green
-                                  : Colors.red,
+                          margin: const EdgeInsets.only(bottom: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: ListTile(
+                              leading: Icon(
+                                Icons.event_available,
+                                color: app.status == 'confirmed' ? Colors.green : Colors.red,
+                                size: 30,
+                              ),
+                              title: Text(
+                                '${app.date.day}/${app.date.month}/${app.date.year} à ${app.timeSlot}',
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 4),
+                                  Text('Motif : ${app.reason} • Statut : ${app.status}'),
+                                  if (hasIllness) ...[
+                                    const SizedBox(height: 6),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFFFF1F2),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        'Maladie : ${app.chronicIllness}',
+                                        style: const TextStyle(
+                                          color: Color(0xFFE11D48),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                  if (hasNote) ...[
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      'Note : ${app.description}',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontStyle: FontStyle.italic,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              trailing: const Icon(Icons.chevron_right),
                             ),
-                            title: Text(
-                              '${app.date.day}/${app.date.month}/${app.date.year} à ${app.timeSlot}',
-                            ),
-                            subtitle: Text(
-                              'Motif : ${app.reason} • Statut : ${app.status}',
-                            ),
-                            trailing: const Icon(Icons.chevron_right),
                           ),
                         );
                       },

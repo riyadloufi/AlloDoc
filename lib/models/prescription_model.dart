@@ -9,7 +9,9 @@ class PrescriptionModel {
   final DateTime date;
   final List<String> medications;
   final String instructions;
-  final String signatureUrl; // optionnel, si tu stockes l'image signature
+  final String signatureUrl;
+  final String pdfUrl;
+  final String signatureBase64;
 
   PrescriptionModel({
     required this.id,
@@ -21,6 +23,8 @@ class PrescriptionModel {
     required this.medications,
     required this.instructions,
     required this.signatureUrl,
+    required this.pdfUrl,
+    required this.signatureBase64,
   });
 
   factory PrescriptionModel.fromMap(String id, Map<String, dynamic> map) {
@@ -34,6 +38,8 @@ class PrescriptionModel {
       medications: List<String>.from(map['medications'] ?? []),
       instructions: map['instructions'] ?? '',
       signatureUrl: map['signatureUrl'] ?? '',
+      pdfUrl: map['pdfUrl'] ?? '',
+      signatureBase64: map['signatureBase64'] ?? '',
     );
   }
 
@@ -47,6 +53,8 @@ class PrescriptionModel {
       'medications': medications,
       'instructions': instructions,
       'signatureUrl': signatureUrl,
+      'pdfUrl': pdfUrl,
+      'signatureBase64': signatureBase64,
     };
   }
 }

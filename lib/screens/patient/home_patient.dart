@@ -2,11 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
-import '../../widgets/doctor_card.dart';
 import '../login_screen.dart';
-import 'book_appointment_screen.dart';
+import 'doctors_directory_tab.dart';
+import 'patient_space_screen.dart';
+import 'patient_prescriptions_screen.dart';
 
 class HomePatient extends StatefulWidget {
   const HomePatient({super.key});
@@ -17,8 +17,8 @@ class HomePatient extends StatefulWidget {
 
 class _HomePatientState extends State<HomePatient> {
   final String uid = FirebaseAuth.instance.currentUser!.uid;
-  String _searchQuery = '';
   String _firstName = '';
+  int _currentIndex = 0;
 
   @override
   void initState() {
@@ -31,115 +31,110 @@ class _HomePatientState extends State<HomePatient> {
         .collection('users')
         .doc(uid)
         .get();
-    setState(() => _firstName = doc['firstName'] ?? '');
+    if (doc.exists) {
+      setState(() => _firstName = doc['firstName'] ?? '');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FD),
       appBar: AppBar(
-        title: const Text('AlloDoc'),
+        title: Text(
+          _currentIndex == 0
+              ? 'AlloDoc'
+              : (_currentIndex == 1 ? 'Mon Espace' : 'Mes Ordonnances'),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+          ),
+        ),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: const Color(0xFF1A73E8),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () => Navigator.pushNamed(context, '/profile'),
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await AuthService().logout();
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
-              );
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
           Container(
-            padding: const EdgeInsets.all(20),
-            color: const Color(0xFF1A73E8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '👋 Bonjour $_firstName !',
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  onChanged: (value) =>
-                      setState(() => _searchQuery = value.toLowerCase()),
-                  decoration: InputDecoration(
-                    hintText: 'Rechercher un médecin...',
-                    prefixIcon: const Icon(Icons.search),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-              ],
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.person, color: Colors.white, size: 20),
+              tooltip: 'Mon Profil',
+              onPressed: () => Navigator.pushNamed(context, '/profile'),
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Médecins disponibles',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
+          Container(
+            margin: const EdgeInsets.only(right: 12),
+            decoration: BoxDecoration(
+              color: Colors.redAccent.withOpacity(0.15),
+              shape: BoxShape.circle,
             ),
-          ),
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('users')
-                  .where('role', isEqualTo: 'doctor')
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting)
-                  return const Center(child: CircularProgressIndicator());
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty)
-                  return const Center(child: Text('Aucun médecin disponible'));
-                final doctors = snapshot.data!.docs.where((doc) {
-                  final data = doc.data() as Map<String, dynamic>;
-                  final name = '${data['firstName']} ${data['lastName']}'
-                      .toLowerCase();
-                  return name.contains(_searchQuery);
-                }).toList();
-                if (doctors.isEmpty)
-                  return const Center(child: Text('Aucun résultat'));
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: doctors.length,
-                  itemBuilder: (context, index) {
-                    final data = doctors[index].data() as Map<String, dynamic>;
-                    final doctor = UserModel.fromMap(data);
-                    return DoctorCard(
-                      doctor: doctor,
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => BookAppointmentScreen(doctor: doctor),
-                        ),
-                      ),
-                    );
-                  },
-                );
+            child: IconButton(
+              icon: const Icon(Icons.logout, color: Colors.white, size: 20),
+              tooltip: 'Se déconnecter',
+              onPressed: () async {
+                await AuthService().logout();
+                if (context.mounted) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  );
+                }
               },
             ),
           ),
         ],
+      ),
+      body: IndexedStack(
+        index: _currentIndex,
+        children: [
+          DoctorsDirectoryTab(firstName: _firstName),
+          const PatientSpaceScreen(isTab: true),
+          const PatientPrescriptionsScreen(),
+        ],
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 15,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) => setState(() => _currentIndex = index),
+          selectedItemColor: const Color(0xFF1A73E8),
+          unselectedItemColor: const Color(0xFF94A3B8),
+          backgroundColor: Colors.white,
+          type: BottomNavigationBarType.fixed,
+          selectedFontSize: 12,
+          unselectedFontSize: 12,
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
+          elevation: 0,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home),
+              label: 'Accueil',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.calendar_today_outlined),
+              activeIcon: Icon(Icons.calendar_today),
+              label: 'Mes RDV',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.description_outlined),
+              activeIcon: Icon(Icons.description),
+              label: 'Ordonnances',
+            ),
+          ],
+        ),
       ),
     );
   }

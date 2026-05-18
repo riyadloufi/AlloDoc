@@ -15,12 +15,15 @@ class AppointmentService {
     return _db
         .collection('appointments')
         .where('patientId', isEqualTo: patientId)
-        .orderBy('date', descending: false)
         .snapshots()
         .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => AppointmentModel.fromMap(doc.id, doc.data()))
-              .toList(),
+          (snapshot) {
+            final list = snapshot.docs
+                .map((doc) => AppointmentModel.fromMap(doc.id, doc.data()))
+                .toList();
+            list.sort((a, b) => a.date.compareTo(b.date));
+            return list;
+          },
         );
   }
 
@@ -29,19 +32,23 @@ class AppointmentService {
     return _db
         .collection('appointments')
         .where('doctorId', isEqualTo: doctorId)
-        .orderBy('date', descending: false)
         .snapshots()
         .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => AppointmentModel.fromMap(doc.id, doc.data()))
-              .toList(),
+          (snapshot) {
+            final list = snapshot.docs
+                .map((doc) => AppointmentModel.fromMap(doc.id, doc.data()))
+                .toList();
+            list.sort((a, b) => a.date.compareTo(b.date));
+            return list;
+          },
         );
   }
 
   // ✅ Annuler un RDV
-  Future<void> cancelAppointment(String appointmentId) async {
+  Future<void> cancelAppointment(String appointmentId, {String reason = ''}) async {
     await _db.collection('appointments').doc(appointmentId).update({
       'status': 'cancelled',
+      'cancelReason': reason,
     });
   }
 
@@ -55,10 +62,13 @@ class AppointmentService {
         .where('doctorId', isEqualTo: doctorId)
         .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
         .where('date', isLessThan: Timestamp.fromDate(end))
-        .where('status', isNotEqualTo: 'cancelled')
         .get();
 
     return snapshot.docs
+        .where((doc) {
+          final status = doc.data()['status'] ?? 'pending';
+          return status != 'cancelled' && status != 'refused';
+        })
         .map((doc) => doc.data()['timeSlot'] as String)
         .toList();
   }

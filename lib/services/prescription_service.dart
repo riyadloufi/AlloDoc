@@ -1,5 +1,4 @@
 import 'dart:typed_data';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
@@ -8,7 +7,7 @@ import 'package:printing/printing.dart';
 import 'package:signature/signature.dart';
 
 class PrescriptionService {
-  // Génère un PDF à partir des données et de la signature
+  // Génère un PDF à partir des données et de la signature (via SignatureController)
   static Future<Uint8List> generatePrescriptionPdf({
     required String doctorName,
     required String patientName,
@@ -17,13 +16,27 @@ class PrescriptionService {
     required String instructions,
     required SignatureController signatureController,
   }) async {
-    final pdf = pw.Document();
-
-    // Capturer la signature sous forme d'image
-    final signatureImage = await signatureController.toImage();
-    final signatureBytes = await signatureImage?.toByteData(
-      format: ImageByteFormat.png,
+    final Uint8List? signatureBytes = await signatureController.toPngBytes();
+    return generatePrescriptionPdfFromBytes(
+      doctorName: doctorName,
+      patientName: patientName,
+      date: date,
+      medications: medications,
+      instructions: instructions,
+      signatureBytes: signatureBytes,
     );
+  }
+
+  // Génère un PDF directement depuis les octets de la signature (parfait pour le rendu local)
+  static Future<Uint8List> generatePrescriptionPdfFromBytes({
+    required String doctorName,
+    required String patientName,
+    required DateTime date,
+    required List<String> medications,
+    required String instructions,
+    required Uint8List? signatureBytes,
+  }) async {
+    final pdf = pw.Document();
 
     pdf.addPage(
       pw.Page(
@@ -58,12 +71,14 @@ class PrescriptionService {
               ),
               pw.Text(instructions),
               pw.SizedBox(height: 40),
-              if (signatureBytes != null)
+              if (signatureBytes != null && signatureBytes.isNotEmpty) ...[
                 pw.Image(
-                  pw.MemoryImage(signatureBytes.buffer.asUint8List()),
+                  pw.MemoryImage(signatureBytes),
                   width: 150,
                   height: 80,
                 ),
+                pw.SizedBox(height: 5),
+              ],
               pw.Text(
                 'Signature du médecin',
                 style: pw.TextStyle(fontStyle: pw.FontStyle.italic),

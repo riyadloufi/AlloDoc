@@ -10,6 +10,9 @@ class AppointmentModel {
   final String timeSlot;
   final String reason;
   final String status;
+  final String description;
+  final String chronicIllness;
+  final String cancelReason;
 
   AppointmentModel({
     required this.id,
@@ -21,6 +24,9 @@ class AppointmentModel {
     required this.timeSlot,
     required this.reason,
     required this.status,
+    required this.description,
+    required this.chronicIllness,
+    this.cancelReason = '',
   });
 
   factory AppointmentModel.fromMap(String id, Map<String, dynamic> map) {
@@ -34,6 +40,9 @@ class AppointmentModel {
       timeSlot: map['timeSlot'] ?? '',
       reason: map['reason'] ?? '',
       status: map['status'] ?? 'pending',
+      description: map['description'] ?? '',
+      chronicIllness: map['chronicIllness'] ?? '',
+      cancelReason: map['cancelReason'] ?? '',
     );
   }
 
@@ -47,6 +56,9 @@ class AppointmentModel {
       'timeSlot': timeSlot,
       'reason': reason,
       'status': status,
+      'description': description,
+      'chronicIllness': chronicIllness,
+      'cancelReason': cancelReason,
     };
   }
 }

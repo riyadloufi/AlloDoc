@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -6,8 +7,11 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:pdf/pdf.dart';
+import 'package:printing/printing.dart';
 
 import '../models/prescription_model.dart';
+import 'prescription_service.dart';
 
 class PrescriptionStorageService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -23,16 +27,25 @@ class PrescriptionStorageService {
     required String instructions,
     required String signatureUrl,
     required Uint8List pdfBytes,
+    required String signatureBase64,
   }) async {
     final String prescriptionId = _firestore
         .collection('prescriptions')
         .doc()
         .id;
 
-    // Upload du PDF
-    final ref = _storage.ref().child('prescriptions/$prescriptionId.pdf');
-    await ref.putData(pdfBytes);
-    final pdfDownloadUrl = await ref.getDownloadURL();
+    // Upload du PDF avec fallback si Storage n'est pas configuré
+    String pdfDownloadUrl = '';
+    try {
+      final ref = _storage.ref().child('prescriptions/$prescriptionId.pdf');
+      await ref.putData(
+        pdfBytes,
+        SettableMetadata(contentType: 'application/pdf'),
+      );
+      pdfDownloadUrl = await ref.getDownloadURL();
+    } catch (e) {
+      print('Firebase Storage non disponible, enregistrement Firestore uniquement : $e');
+    }
 
     final prescription = PrescriptionModel(
       id: prescriptionId,
@@ -44,6 +57,8 @@ class PrescriptionStorageService {
       medications: medications,
       instructions: instructions,
       signatureUrl: signatureUrl,
+      pdfUrl: pdfDownloadUrl,
+      signatureBase64: signatureBase64,
     );
 
     await _firestore.collection('prescriptions').doc(prescriptionId).set({
@@ -57,12 +72,15 @@ class PrescriptionStorageService {
     return _firestore
         .collection('prescriptions')
         .where('patientId', isEqualTo: patientId)
-        .orderBy('date', descending: true)
         .snapshots()
         .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => PrescriptionModel.fromMap(doc.id, doc.data()))
-              .toList(),
+          (snapshot) {
+            final list = snapshot.docs
+                .map((doc) => PrescriptionModel.fromMap(doc.id, doc.data()))
+                .toList();
+            list.sort((a, b) => b.date.compareTo(a.date));
+            return list;
+          },
         );
   }
 
@@ -71,16 +89,49 @@ class PrescriptionStorageService {
     return _firestore
         .collection('prescriptions')
         .where('doctorId', isEqualTo: doctorId)
-        .orderBy('date', descending: true)
         .snapshots()
         .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => PrescriptionModel.fromMap(doc.id, doc.data()))
-              .toList(),
+          (snapshot) {
+            final list = snapshot.docs
+                .map((doc) => PrescriptionModel.fromMap(doc.id, doc.data()))
+                .toList();
+            list.sort((a, b) => b.date.compareTo(a.date));
+            return list;
+          },
         );
   }
 
-  // Télécharger et ouvrir un PDF depuis Firebase Storage
+  // Générer et afficher localement le PDF (évite Storage de Firebase et le téléchargement)
+  static Future<void> openPrescriptionPdfLocally(PrescriptionModel pres) async {
+    try {
+      Uint8List? signatureBytes;
+      if (pres.signatureBase64.isNotEmpty) {
+        signatureBytes = base64Decode(pres.signatureBase64);
+      }
+      
+      final pdfBytes = await PrescriptionService.generatePrescriptionPdfFromBytes(
+        doctorName: pres.doctorName,
+        patientName: pres.patientName,
+        date: pres.date,
+        medications: pres.medications,
+        instructions: pres.instructions,
+        signatureBytes: signatureBytes,
+      );
+      
+      await openPdfFromBytes(pdfBytes);
+    } catch (e) {
+      print('Erreur lors de la génération locale du PDF : $e');
+    }
+  }
+
+  // Ouvrir le PDF à partir d'octets bruts (impression native sur tous supports)
+  static Future<void> openPdfFromBytes(Uint8List bytes) async {
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => bytes,
+    );
+  }
+
+  // Télécharger et ouvrir un PDF depuis Firebase Storage (si existant)
   static Future<void> openPdf(String pdfUrl) async {
     try {
       final Directory tempDir = await getTemporaryDirectory();

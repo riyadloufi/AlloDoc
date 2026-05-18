@@ -48,73 +48,144 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Connexion")),
-      backgroundColor: Colors.white,
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'AlloDoc',
-              style: TextStyle(
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1A73E8),
-              ),
-            ),
-            const SizedBox(height: 40),
-            TextField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.email),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Mot de passe',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.lock),
-              ),
-            ),
-            const SizedBox(height: 12),
-            if (_errorMsg.isNotEmpty)
-              Text(_errorMsg, style: const TextStyle(color: Colors.red)),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _login,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: const Color(0xFF1A73E8),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 20),
+              
+              // Premium Medical Branding Logo
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withOpacity(0.08),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.local_hospital_rounded,
+                    size: 64,
+                    color: theme.colorScheme.primary,
+                  ),
                 ),
-                child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                        'Se connecter',
-                        style: TextStyle(fontSize: 16, color: Colors.white),
-                      ),
               ),
-            ),
-            const SizedBox(height: 16),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                );
-              },
-              child: const Text("Pas encore de compte ? S'inscrire"),
-            ),
-          ],
+              const SizedBox(height: 24),
+              
+              // Typography Titles
+              Text(
+                'AlloDoc',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.displayLarge?.copyWith(
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Votre santé connectée, en un clic',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: const Color(0xFF64748B),
+                ),
+              ),
+              const SizedBox(height: 48),
+
+              // Form Fields
+              TextField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                decoration: const InputDecoration(
+                  hintText: 'Adresse email',
+                  prefixIcon: Icon(Icons.email_outlined),
+                ),
+              ),
+              const SizedBox(height: 18),
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _login(),
+                decoration: const InputDecoration(
+                  hintText: 'Mot de passe',
+                  prefixIcon: Icon(Icons.lock_outline_rounded),
+                ),
+              ),
+              
+              // Error indicator
+              if (_errorMsg.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF2F2),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFFEE2E2)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline_rounded, color: Color(0xFFEF4444), size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          _errorMsg,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: const Color(0xFFB91C1C),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              
+              const SizedBox(height: 32),
+
+              // Action Login Button
+              ElevatedButton(
+                onPressed: _isLoading ? null : _login,
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                      )
+                    : const Text('Se connecter'),
+              ),
+              const SizedBox(height: 32),
+
+              // Navigation to Sign Up
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                  );
+                },
+                child: RichText(
+                  text: TextSpan(
+                    style: theme.textTheme.bodyMedium?.copyWith(fontSize: 14),
+                    children: [
+                      const TextSpan(text: "Pas encore de compte ? "),
+                      TextSpan(
+                        text: "S'inscrire",
+                        style: TextStyle(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

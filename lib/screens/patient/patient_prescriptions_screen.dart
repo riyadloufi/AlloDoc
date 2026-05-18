@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/prescription_model.dart';
+import '../../models/user_model.dart';
 import '../../services/prescription_storage_service.dart';
 
 class PatientPrescriptionsScreen extends StatefulWidget {
@@ -19,50 +20,48 @@ class _PatientPrescriptionsScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Mes ordonnances'), centerTitle: true),
-      body: StreamBuilder<List<PrescriptionModel>>(
-        stream: _service.getPatientPrescriptions(patientId),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting)
-            return const Center(child: CircularProgressIndicator());
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.medical_information, size: 80, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text('Aucune ordonnance reçue'),
-                ],
+    return StreamBuilder<List<PrescriptionModel>>(
+      stream: _service.getPatientPrescriptions(patientId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.medical_information, size: 80, color: Colors.grey),
+                const SizedBox(height: 16),
+                Text('Aucune ordonnance reçue'),
+              ],
+            ),
+          );
+        }
+        final prescriptions = snapshot.data!;
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: prescriptions.length,
+          itemBuilder: (context, index) {
+            final pres = prescriptions[index];
+            return Card(
+              margin: const EdgeInsets.only(bottom: 12),
+              child: ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0xFF1A73E8),
+                  child: Icon(Icons.description, color: Colors.white),
+                ),
+                title: Text(UserModel.cleanDoctorName(pres.doctorName)),
+                subtitle: Text(
+                  '${pres.date.day}/${pres.date.month}/${pres.date.year}',
+                ),
+                trailing: const Icon(Icons.picture_as_pdf, color: Colors.red),
+                onTap: () => _showDetails(pres),
               ),
             );
-          }
-          final prescriptions = snapshot.data!;
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: prescriptions.length,
-            itemBuilder: (context, index) {
-              final pres = prescriptions[index];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                child: ListTile(
-                  leading: const CircleAvatar(
-                    backgroundColor: Color(0xFF1A73E8),
-                    child: Icon(Icons.description, color: Colors.white),
-                  ),
-                  title: Text('Dr. ${pres.doctorName}'),
-                  subtitle: Text(
-                    '${pres.date.day}/${pres.date.month}/${pres.date.year}',
-                  ),
-                  trailing: const Icon(Icons.picture_as_pdf, color: Colors.red),
-                  onTap: () => _showDetails(pres),
-                ),
-              );
-            },
-          );
-        },
-      ),
+          },
+        );
+      },
     );
   }
 
@@ -105,7 +104,7 @@ class _PatientPrescriptionsScreenState
                   ListTile(
                     leading: const Icon(Icons.person),
                     title: const Text('Médecin'),
-                    subtitle: Text(pres.doctorName),
+                    subtitle: Text(UserModel.cleanDoctorName(pres.doctorName)),
                   ),
                   ListTile(
                     leading: const Icon(Icons.calendar_today),
@@ -142,7 +141,7 @@ class _PatientPrescriptionsScreenState
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: () async {
-                        await PrescriptionStorageService.openPdf('');
+                        await PrescriptionStorageService.openPrescriptionPdfLocally(pres);
                       },
                       icon: const Icon(Icons.picture_as_pdf),
                       label: const Text('Voir le PDF'),
