@@ -74,6 +74,7 @@ class _HomeDoctorState extends State<HomeDoctor> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FD),
       appBar: AppBar(
+        automaticallyImplyLeading: false, // Supprime la flèche de retour !
         title: const Text(
           'Espace Praticien',
           style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5),

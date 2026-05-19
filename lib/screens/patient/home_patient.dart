@@ -41,6 +41,7 @@ class _HomePatientState extends State<HomePatient> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FD),
       appBar: AppBar(
+        automaticallyImplyLeading: false, // Supprime la flèche de retour !
         title: Text(
           _currentIndex == 0
               ? 'AlloDoc'
